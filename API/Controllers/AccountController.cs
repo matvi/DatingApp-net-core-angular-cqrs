@@ -4,8 +4,9 @@ using System.Text;
 using System.Threading.Tasks;
 using API.Data;
 using API.Dtos;
-using API.Entity;
-using API.Interfaces;
+using Common.Dtos;
+using Common.Entity;
+using Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

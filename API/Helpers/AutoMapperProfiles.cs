@@ -1,8 +1,10 @@
 using System.Linq;
 using API.Dtos;
-using API.Entity;
 using API.Extensions;
 using AutoMapper;
+using Common.Dtos;
+using Common.Entity;
+using PhotoDto = Common.Dtos.PhotoDto;
 
 namespace API.Helpers
 {

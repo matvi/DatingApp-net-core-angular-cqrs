@@ -2,14 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using API.Commands;
 using API.Data;
 using API.Dtos;
-using API.Entity;
-using API.Interfaces;
 using AutoMapper;
+using Common.Dtos;
+using Common.Entity;
+using Common.Interfaces;
+using Common.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PhotoDto = Common.Dtos.PhotoDto;
 
 namespace API.Controllers
 {
@@ -18,14 +23,17 @@ namespace API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly IUploadPhotoService _photoService;
+        private readonly IMediator _mediator;
 
         public UsersController(IUserRepository userRepository,
          IMapper mapper, 
-         IUploadPhotoService photoService)
+         IUploadPhotoService photoService,
+         IMediator mediator)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _photoService = photoService;
+            _mediator = mediator;
         }
 
         // [HttpGet("{id}")]
@@ -39,16 +47,16 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
         {
-            var users = await _userRepository.GetAllMembersDtoAsync();
-            var members = _mapper.Map<IEnumerable<MemberDto>>(users);
-            return Ok(users);
+            var members = await _mediator.Send(new GetAllMembersQuery());
+            return Ok(members);
         }
 
         [HttpPost]
         public async Task<ActionResult<AppUser>> AddUser(AppUser appUser)
         {
-            await _userRepository.AddUser(appUser);
-            return Created("", appUser);
+            var createAppUserCommand = new CreateAppUserCommand(appUser);
+            var result = await _mediator.Send(createAppUserCommand);
+            return Created("", result);
         }
 
         [HttpGet("{username}", Name = "GetUser")]

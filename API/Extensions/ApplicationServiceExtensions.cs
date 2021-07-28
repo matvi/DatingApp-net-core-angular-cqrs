@@ -1,9 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using API.Configuration;
 using API.Data;
-using API.Data.Repository;
+using API.Dtos;
 using API.Helpers;
-using API.Interfaces;
 using API.Services;
+using Common.Data.Repository;
+using Common.Interfaces;
+using Common.PipelinesBehaviours;
+using Common.Queries;
+using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +31,18 @@ namespace API.Extensions
                 options.UseSqlite(config.GetConnectionString("DefaultConnection"));
             });
             services.AddScoped<IUploadPhotoService, UploadPhotoService>();
+            services.AddMediatR(typeof(Startup));
+            // if handlers are in other project we need to add the assembly.
+            // There are two options and both options will get the same object data.
+            //option 1
+            var assembly = AppDomain.CurrentDomain.Load("Common");
+            services.AddMediatR(assembly);
+            //option 2
+            //services.AddMediatR(typeof(GetAllMembersQuery).GetTypeInfo().Assembly);
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
+            services.AddValidatorsFromAssembly(typeof(Startup).Assembly);
+
         }
     }
 }
