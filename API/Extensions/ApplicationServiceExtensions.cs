@@ -12,6 +12,7 @@ using Common.Interfaces;
 using Common.PipelinesBehaviours;
 using Common.Queries;
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +33,10 @@ namespace API.Extensions
             });
             services.AddScoped<IUploadPhotoService, UploadPhotoService>();
             services.AddMemoryCache();
+        }
+        
+        public static void AddCQRSApplicationService(this IServiceCollection services, IConfiguration config)
+        {
             services.AddMediatR(typeof(Startup));
             // if handlers are in other project we need to add the assembly.
             // There are two options and both options will get the same object data.
@@ -44,7 +49,19 @@ namespace API.Extensions
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheBehaviour<,>));
             services.AddValidatorsFromAssembly(typeof(Startup).Assembly);
+        }
 
+        public static void AddMassTransitApplicationService(this IServiceCollection services, IConfiguration config)
+        {
+            var rabbitMqSettings = config.GetSection("RabbitMqSettings").Get<RabbitMqSettings>();
+            services.AddMassTransit(massConf =>
+            {
+                massConf.UsingRabbitMq((ctx, cfg) =>
+                {
+                    cfg.Host(rabbitMqSettings.Host);
+                });
+            });
+            services.AddMassTransitHostedService();
         }
     }
 }

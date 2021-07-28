@@ -30,6 +30,8 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddApplicationService(Configuration);
+            services.AddCQRSApplicationService(Configuration);
+            services.AddMassTransitApplicationService(Configuration);
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
