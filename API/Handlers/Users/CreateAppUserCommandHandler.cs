@@ -12,24 +12,14 @@ namespace API.Handlers.Users
     public class CreateAppUserCommandHandler : IRequestHandler<CreateAppUserCommand, AppUser>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPublishEndpoint _publishEndpoint;
 
-        public CreateAppUserCommandHandler(IUserRepository userRepository, IPublishEndpoint publishEndpoint)
+        public CreateAppUserCommandHandler(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _publishEndpoint = publishEndpoint;
         }
         public async Task<AppUser> Handle(CreateAppUserCommand request, CancellationToken cancellationToken)
         {
-            var appUserResult = await _userRepository.AddUser(request.AppUser);
-            var appUserCreatedCommand = new AppUserCreatedCommand
-            {
-                UserId = appUserResult.AppUserId
-            };
-
-            await _publishEndpoint.Publish<AppUserCreatedCommand>(appUserCreatedCommand);
-
-            return appUserResult;
+            return await _userRepository.AddUser(request.AppUser);
         }
     }
 }

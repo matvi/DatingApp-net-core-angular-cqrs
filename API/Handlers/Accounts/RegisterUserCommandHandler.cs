@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using API.Commands;
 using API.Data;
 using Common.Entity;
+using Common.Notifications;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +15,14 @@ namespace API.Handlers.Accounts
     public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, AppUser>
     {
         private readonly DataContext _dataContext;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public RegisterUserCommandHandler(DataContext dataContext)
+        public RegisterUserCommandHandler(DataContext dataContext, IPublishEndpoint publishEndpoint)
         {
             _dataContext = dataContext;
+            _publishEndpoint = publishEndpoint;
         }
+        
         public async Task<AppUser> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             request.UserDto.UserName.ToLower();
@@ -34,8 +39,14 @@ namespace API.Handlers.Accounts
                 PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.UserDto.Password)),
                 PasswordSalt = hmac.Key
             };
-            await _dataContext.Users.AddAsync(user);
+            var userRegistered = await _dataContext.Users.AddAsync(user);
             await _dataContext.SaveChangesAsync();
+            
+            var appUserCreatedCommand = new RegisterUserCreatedCommand
+            {
+                UserId = userRegistered.Entity.AppUserId
+            };
+            await _publishEndpoint.Publish<RegisterUserCreatedCommand>(appUserCreatedCommand);
 
             return user;
         }
