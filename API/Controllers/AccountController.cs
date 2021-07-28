@@ -1,12 +1,11 @@
-using System;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using API.Commands;
 using API.Data;
-using API.Dtos;
 using Common.Dtos;
-using Common.Entity;
 using Common.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,35 +15,34 @@ namespace API.Controllers
     {
         private readonly DataContext _datacontext;
         private readonly ITokenService _tokenService;
+        private readonly IMediator _mediator;
 
-        public AccountController(DataContext datacontext, ITokenService tokenService)
+        public AccountController(
+            DataContext datacontext,
+            ITokenService tokenService,
+            IMediator mediator)
         {
             _datacontext = datacontext;
             _tokenService = tokenService;
+            _mediator = mediator;
         }
 
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(UserDto userDto)
         {
-            userDto.UserName.ToLower();
+            var registerUserCommand = new RegisterUserCommand
+            {
+                UserDto = userDto
+            };
 
-            if(await UserExists(userDto.UserName))
+            var result = await _mediator.Send(registerUserCommand);
+
+            if (result == null)
             {
                 return BadRequest("User already exits");
             }
             
-            using var hmac = new HMACSHA512();
-            var user = new AppUser
-            {
-                UserName = userDto.UserName,
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(userDto.Password)),
-                PasswordSalt = hmac.Key
-            };
-            await _datacontext.Users.AddAsync(user);
-            await _datacontext.SaveChangesAsync();
-
             return Created("urlToAPI", userDto);
-
         }
 
         [HttpPost("login")]
@@ -84,11 +82,5 @@ namespace API.Controllers
 
             return loggedUser;
         }
-
-        private async Task<bool> UserExists(string userName)
-        {
-            return await _datacontext.Users.AnyAsync(u => u.UserName == userName);
-        }
-
     }
 }
