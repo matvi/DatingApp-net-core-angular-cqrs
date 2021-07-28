@@ -31,6 +31,7 @@ namespace API.Extensions
                 options.UseSqlite(config.GetConnectionString("DefaultConnection"));
             });
             services.AddScoped<IUploadPhotoService, UploadPhotoService>();
+            services.AddMemoryCache();
             services.AddMediatR(typeof(Startup));
             // if handlers are in other project we need to add the assembly.
             // There are two options and both options will get the same object data.
@@ -41,6 +42,7 @@ namespace API.Extensions
             //services.AddMediatR(typeof(GetAllMembersQuery).GetTypeInfo().Assembly);
 
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheBehaviour<,>));
             services.AddValidatorsFromAssembly(typeof(Startup).Assembly);
 
         }
