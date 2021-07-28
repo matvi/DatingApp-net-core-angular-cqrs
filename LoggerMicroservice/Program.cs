@@ -1,6 +1,8 @@
 ﻿using System;
 using LoggerMicroservice.Common;
+using LoggerMicroservice.Interfaces;
 using LoggerMicroservice.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LoggerMicroservice
 {
@@ -10,11 +12,13 @@ namespace LoggerMicroservice
         {
             // TODO:depending on file configuration you can choose if logging using console or database
             Console.WriteLine("ILogger Microservice initialized. Logging in console");
+            var serviceProvider = new ServiceCollection()
+                .AddScoped<ILoggerFactory, LoggerFactory>()
+                .AddScoped<ILogService, LogService>()
+                .BuildServiceProvider();
 
-            var factory = new LoggerFactory();
-            var loggerStrategy = factory.GetLogger(Logger.Console);
-            var loggerService = new LogService(loggerStrategy);
-            loggerService.WriteLog("this is my message");
+            var logService = serviceProvider.GetService<ILogService>();
+            logService.WriteLog("my message for DI", Logger.Console);
         }
     }
 }

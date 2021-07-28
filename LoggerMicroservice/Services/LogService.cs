@@ -1,21 +1,22 @@
 using System;
+using LoggerMicroservice.Common;
 using LoggerMicroservice.Interfaces;
 
 namespace LoggerMicroservice.Services
 {
     public class LogService : ILogService
     {
-        private readonly ILoggerStrategy _loggerStrategy;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public LogService(ILoggerStrategy loggerStrategy)
+        public LogService(ILoggerFactory loggerFactory)
         {
-            _loggerStrategy = loggerStrategy;
+            _loggerFactory = loggerFactory;
         }
-
-
-        public void WriteLog(String message)
+        
+        public void WriteLog(String message, Logger on)
         {
-            _loggerStrategy.WriteLog(message);
+            var loggerStrategy = _loggerFactory.GetLogger(on);
+            loggerStrategy.WriteLog(message);
         }
     }
     
