@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using API.Common.Filters;
 using API.Configuration;
 using API.Data;
 using API.Dtos;
@@ -33,6 +34,15 @@ namespace API.Extensions
             });
             services.AddScoped<IUploadPhotoService, UploadPhotoService>();
             services.AddMemoryCache();
+            //TODO: use ApiExceptionFilter instead of ExceptionMiddleware it will give you more control over the exceptions
+            // step1: uncomment the next lines to add the ApiExceptionFilter
+            // step2; remove app.useMiddleware(ExceptionMiddleware) from app configuration
+            // step3: change ValidationException by CustomValidationException in ValidationBehaviour pipeline
+            // step4: prepare Angular app to work with new type of response when errors
+            // services.AddControllers(config =>
+            // {
+            //     config.Filters.Add(new ApiExceptionFilter());
+            // });
         }
         
         public static void AddCQRSApplicationService(this IServiceCollection services, IConfiguration config)

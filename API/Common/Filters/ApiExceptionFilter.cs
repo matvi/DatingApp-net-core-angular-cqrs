@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace API.Common.Filters
 {
-    public class ApiExceptionFilterAttribute : IExceptionFilter
+    public class ApiExceptionFilter : IExceptionFilter
     {
         private readonly IDictionary<Type, Action<ExceptionContext>> _exceptionHandlers;
 
-        public ApiExceptionFilterAttribute()
+        public ApiExceptionFilter()
         {
             // Register known exception types and handlers.
             _exceptionHandlers = new Dictionary<Type, Action<ExceptionContext>>
@@ -25,13 +25,6 @@ namespace API.Common.Filters
         {
             HandleException(context);
         }
-
-        // public override void OnException(ExceptionContext context)
-        // {
-        //     HandleException(context);
-        //
-        //     base.OnException(context);
-        // }
 
         private void HandleException(ExceptionContext context)
         {
