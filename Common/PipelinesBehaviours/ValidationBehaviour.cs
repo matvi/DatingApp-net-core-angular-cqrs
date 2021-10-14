@@ -35,8 +35,12 @@ namespace Common.PipelinesBehaviours
                 {
                     if (response is ResultBase res)
                     {
-                        var error = GetResultErrors(failures);
-                        res.Reasons.Add(error);
+                        var errors = GetResultErrors(failures);
+                        foreach (var error in errors)
+                        {
+                            res.Reasons.Add(error);
+                        }
+                        
                         return response;
                     }
                     throw new ValidationException(failures);
@@ -45,16 +49,11 @@ namespace Common.PipelinesBehaviours
 
             return await next();
         }
-        private static Error GetResultErrors(List<ValidationFailure> failures)
+        private static IEnumerable<Error> GetResultErrors(List<ValidationFailure> failures)
         {
             var errors = failures.Select(e => new Error(e.ErrorMessage));
-            var error = new Error();
-            foreach (var e in errors)
-            {
-                error.Reasons.Add(e);
-            }
-
-            return error;
+            
+            return errors;
         }
     }
 }
